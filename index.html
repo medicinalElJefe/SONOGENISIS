@@ -1,0 +1,2227 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Acausal Sound Healing – Vector-Aware Chat (v9)</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <script src="https://unpkg.com/three@0.159.0/build/three.min.js"></script>
+  <style>
+    :root {
+      --bg: #050510;
+      --bg-alt: #10101e;
+      --card: #151525;
+      --accent: #4a9fff;
+      --accent-soft: #ffdf80;
+      --danger: #ff4a7a;
+      --text: #f5f5ff;
+      --muted: #aaaacc;
+      --border: #262642;
+      --sans: system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      padding: 0;
+      font-family: var(--sans);
+      background: radial-gradient(circle at top, #18182c 0, var(--bg) 60%);
+      color: var(--text);
+      line-height: 1.5;
+    }
+    main { max-width: 1200px; margin: 0 auto; padding: 12px 10px 28px; }
+    header {
+      padding: 8px 0 10px;
+      border-bottom: 1px solid var(--border);
+      margin-bottom: 8px;
+    }
+    h1 { font-size: 1.5rem; margin: 0 0 4px; }
+    .subtitle { color: var(--muted); font-size: 0.85rem; }
+    .layout {
+      display: grid;
+      grid-template-columns: minmax(260px, 340px) minmax(260px, 1.4fr) minmax(260px, 320px);
+      gap: 10px;
+      margin-top: 10px;
+    }
+    @media (max-width: 980px) { .layout { grid-template-columns: 1fr; } }
+    .card {
+      background: var(--card);
+      border-radius: 10px;
+      padding: 12px 14px;
+      border: 1px solid var(--border);
+    }
+    h2 { font-size: 1.05rem; margin-top: 0; margin-bottom: 6px; }
+    h3 { font-size: 0.95rem; margin-top: 10px; margin-bottom: 4px; }
+    .section-label {
+      font-size: 0.7rem;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: var(--muted);
+      margin-bottom: 2px;
+    }
+    p.small { font-size: 0.8rem; color: var(--muted); margin: 2px 0 4px; }
+    .hint { font-size: 0.75rem; color: var(--muted); }
+    button {
+      border: none;
+      border-radius: 999px;
+      padding: 7px 12px;
+      font-size: 0.85rem;
+      font-weight: 600;
+      cursor: pointer;
+      margin-top: 6px;
+    }
+    .btn-primary { background: var(--accent); color: #fff; }
+    .btn-secondary { background: var(--danger); color: #fff; }
+    .btn-ghost {
+      background: transparent;
+      color: var(--muted);
+      border: 1px solid var(--border);
+      border-radius: 999px;
+      padding: 5px 10px;
+      font-size: 0.8rem;
+      cursor: pointer;
+    }
+    select {
+      width: 100%;
+      padding: 4px 6px;
+      border-radius: 4px;
+      border: 1px solid var(--border);
+      background: var(--bg-alt);
+      color: var(--text);
+      font-size: 0.78rem;
+      margin-top: 2px;
+      margin-bottom: 4px;
+    }
+    label.small-label {
+      font-size: 0.78rem;
+      display: block;
+      margin-top: 4px;
+      margin-bottom: 0;
+      color: var(--muted);
+    }
+    /* Chat */
+    #chatLog {
+      background: #0c0c18;
+      border-radius: 8px;
+      border: 1px solid var(--border);
+      padding: 8px;
+      font-size: 0.78rem;
+      max-height: 230px;
+      overflow-y: auto;
+    }
+    .msg-assistant, .msg-user {
+      margin-bottom: 6px;
+      display: flex;
+    }
+    .msg-assistant span, .msg-user span {
+      padding: 5px 8px;
+      border-radius: 8px;
+      max-width: 100%;
+    }
+    .msg-assistant { justify-content: flex-start; }
+    .msg-assistant span {
+      background: #18182c;
+      border: 1px solid var(--border);
+      color: var(--text);
+    }
+    .msg-user { justify-content: flex-end; }
+    .msg-user span {
+      background: #2c3e72;
+      border: 1px solid #3f5aa0;
+      color: #fdfdff;
+    }
+    #chatInputRow {
+      display: flex;
+      gap: 6px;
+      margin-top: 6px;
+    }
+    #chatInput {
+      flex: 1;
+      padding: 6px 8px;
+      border-radius: 999px;
+      border: 1px solid var(--border);
+      background: var(--bg-alt);
+      color: var(--text);
+      font-size: 0.8rem;
+    }
+    .quick-intents {
+      display:flex;
+      flex-wrap:wrap;
+      gap:6px;
+      margin-top:6px;
+    }
+    .quick-intents button {
+      font-size:0.75rem;
+      padding:4px 8px;
+      margin-top:0;
+    }
+    .vector-summary {
+      margin-top: 8px;
+      font-size: 0.75rem;
+      color: var(--muted);
+      border-top: 1px solid var(--border);
+      padding-top: 6px;
+      white-space: pre-line;
+    }
+    .fine-tune {
+      margin-top: 8px;
+      font-size: 0.78rem;
+      color: var(--muted);
+      border-top: 1px solid var(--border);
+      padding-top: 6px;
+    }
+    .bio-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0,1fr));
+      gap: 6px;
+      margin-top: 4px;
+    }
+    .bio-grid label {
+      font-size: 0.75rem;
+      display: block;
+      margin-bottom: 2px;
+    }
+    .bio-grid input {
+      width: 100%;
+      padding: 3px 5px;
+      border-radius: 4px;
+      border: 1px solid var(--border);
+      background: var(--bg-alt);
+      color: var(--text);
+      font-size: 0.78rem;
+    }
+    /* Breathing */
+    .breath-grid {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0,1fr));
+      gap: 6px;
+      margin-top: 6px;
+    }
+    .breath-step {
+      border-radius: 8px;
+      border: 1px solid var(--border);
+      padding: 6px 8px;
+      font-size: 0.75rem;
+      background: #10101e;
+    }
+    .breath-step strong { display:block; font-size:0.8rem; margin-bottom:2px; }
+    .breath-active {
+      border-color: var(--accent-soft);
+      box-shadow: 0 0 0 1px rgba(255,223,128,0.35);
+    }
+    .breath-timer { margin-top: 8px; text-align:center; }
+    .breath-count { font-size: 2rem; font-weight: 700; }
+    .breath-phase-label { font-size: 0.9rem; margin-top: 2px; }
+    /* Sound / geometry */
+    canvas {
+      display:block;
+      width:100%;
+      height:260px;
+      background: radial-gradient(circle at center, #22223a 0, #050510 60%);
+      border-radius:8px;
+      border:1px solid var(--border);
+    }
+    .phase-label { font-size:0.8rem; color:var(--muted); }
+    .phase-name { font-size:1.05rem; margin:2px 0; }
+    .pill {
+      display:inline-block;
+      padding:2px 8px;
+      border-radius:999px;
+      border:1px solid var(--border);
+      font-size:0.7rem;
+      color:var(--muted);
+      margin-right:4px;
+      margin-top:4px;
+    }
+    .timer { margin-top:4px; font-size:0.9rem; color:var(--accent-soft); }
+    .guidance { font-size:0.8rem; margin-top:4px; color:#e1e1ff; }
+    .weights { font-size:0.78rem; color:var(--muted); margin-top:6px; }
+    .status { font-size:0.8rem; margin-top:6px; color:var(--muted); }
+    .status-strong { color:var(--accent-soft); }
+    .history-item {
+      font-size:0.78rem;
+      border-bottom:1px solid var(--border);
+      padding:4px 0;
+    }
+  </style>
+</head>
+<body>
+<main>
+    <header>
+    <h1>Acausal Sound Healing</h1>
+    <div class="subtitle">
+      Vector-aware chat · optional bio tracking · Platonic & Tetrateron harmonics · 4-6-8 coherence breathing
+    </div>
+    <div id="headerControls" style="margin-top:4px; text-align:right; font-size:0.8rem;"></div>
+  </header>
+
+  <div class="layout">
+    <!-- LEFT: Chat + Vector + Fine-tune + Bio -->
+    <section class="card">
+      <div class="section-label">Step 1 · Talk to the system</div>
+      <h2>Vector-aware chat intake</h2>
+      <p class="small">
+        Type anything you like – how you feel, what hurts, what you want from this session.
+        The chat interprets key phrases (emotions, pain locations, energy level, boundaries, environment)
+        and updates a hidden state vector that drives the sound field and geometry.
+      </p>
+
+      <div id="chatLog"></div>
+
+      <div id="chatInputRow">
+        <input id="chatInput" type="text" placeholder="Describe how you feel or what you want to work on..." />
+        <button class="btn-primary" id="chatSendBtn">Send</button>
+      </div>
+      <div class="quick-intents">
+        <button class="btn-ghost" data-intent="ground_and_stabilize">I need grounding</button>
+        <button class="btn-ghost" data-intent="release_emotions">I need to release</button>
+        <button class="btn-ghost" data-intent="clarify_mind">I need focus</button>
+        <button class="btn-ghost" data-intent="activate_will">I need courage</button>
+        <button class="btn-ghost" data-intent="expand_and_connect">I want to expand</button>
+        <button class="btn-ghost" data-intent="protect_energy">I need protection</button>
+        <button class="btn-ghost" data-intent="intimacy_support">I want deeper intimacy</button>
+      </div>
+
+      <div class="vector-summary">
+        <div><strong>Current internal vector (for reference):</strong></div>
+        <div id="vectorText"></div>
+      </div>
+
+      <div class="fine-tune">
+        <h3>Fine-tune controls</h3>
+        <p class="small">
+          These let you override or refine what the chat detects. You can still just ignore them and let the system infer everything.
+        </p>
+        <label class="small-label" for="ancientModeSelect">Ancient / field overlay</label>
+        <select id="ancientModeSelect">
+          <option value="none">None – neutral calibration</option>
+          <option value="protection">Protection · aura shield</option>
+          <option value="vitality">Vitality · life force</option>
+          <option value="purification">Purification · cleansing</option>
+          <option value="wisdom">Wisdom · insight</option>
+          <option value="dreams">Dreams · inner vision</option>
+          <option value="love_intimacy">Love · heart & intimacy</option>
+        </select>
+
+        <label class="small-label" for="auraSelect">Aura / field color (subjective)</label>
+        <select id="auraSelect">
+          <option value="none">None / not sure</option>
+          <option value="white_gray">White / gray – neutral etheric</option>
+          <option value="red">Red – survival / activation</option>
+          <option value="orange">Orange – creativity / sensual</option>
+          <option value="yellow">Yellow – focus / will</option>
+          <option value="green">Green – heart / repair</option>
+          <option value="blue">Blue – expression / soothing</option>
+          <option value="violet">Violet – insight / subtle</option>
+        </select>
+
+        <label class="small-label" for="envSelect">Playback environment</label>
+        <select id="envSelect">
+          <option value="headphones">Headphones / earbuds – precise</option>
+          <option value="speakers">Room speakers – ambient field</option>
+          <option value="car">Car / Bluetooth – stable & gentle</option>
+        </select>
+
+        <label class="small-label" for="lengthSelect">Session length</label>
+        <select id="lengthSelect">
+          <option value="300">5 minutes – quick reset</option>
+          <option value="600">10 minutes – standard session</option>
+          <option value="1200">20 minutes – deep dive</option>
+        </select>
+      </div>
+
+      <h3 style="margin-top:10px;">Optional bio tracking (manual)</h3>
+      <p class="small">
+        If you use a wearable (Oura, WHOOP, Garmin, etc.), you can enter biometrics here. When enabled, the app
+        nudges the frequency mix (e.g. high stress → more grounding). Leave off if you prefer pure subjective tuning.
+      </p>
+      <label style="font-size:0.78rem;">
+        <input type="checkbox" id="bioEnabled" /> Use bio data to tune the sound field
+      </label>
+      <div class="bio-grid">
+        <div>
+          <label for="bioHR">Resting HR (bpm)</label>
+          <input id="bioHR" type="number" min="30" max="140" placeholder="e.g. 60" />
+        </div>
+        <div>
+          <label for="bioHRV">HRV (ms)</label>
+          <input id="bioHRV" type="number" min="5" max="200" placeholder="e.g. 70" />
+        </div>
+        <div>
+          <label for="bioSleep">Sleep last night (hrs)</label>
+          <input id="bioSleep" type="number" min="0" max="14" step="0.1" placeholder="e.g. 7.5" />
+        </div>
+        <div>
+          <label for="bioStress">Self-rated stress 0–10</label>
+          <input id="bioStress" type="number" min="0" max="10" placeholder="e.g. 6" />
+        </div>
+      </div>
+      <p class="hint">
+        All data stays in your browser. It is only stored with your session history if you save an outcome.
+      
+      <h3 style="margin-top:10px;">Camera pulse scan (optional)</h3>
+      <p class="small">
+        Place your fingertip gently over the rear camera and flash. This estimates heart rate and variability
+        and feeds the element mix automatically. Not a medical device.
+      </p>
+      <button class="btn-ghost" id="camHRStartBtn">Start 30s pulse scan</button>
+      <button class="btn-secondary" id="camHRStopBtn" style="display:none;">Stop scan</button>
+      <div class="hint" id="camHRStatus">Scanner idle.</div>
+      <div class="small" id="camHRResult"></div>
+      <video id="camHRVideo" playsinline style="display:none;"></video>
+      <canvas id="camHRCanvas" width="160" height="120" style="display:none;"></canvas>
+</p>
+    </section>
+
+    <!-- CENTER: Breathing + Sound -->
+    <section class="card">
+      <div class="section-label">Step 2 · 4-6-8 Coherence Breath</div>
+      <h2>Breath cycle mapped to friction, cost & correction</h2>
+      <p class="small">
+        4-count inhale (generate & notice friction) → 6-count hold (informational conflict) → 8-count exhale with
+        micro-movement (recursive correction into posture).
+      </p>
+
+      <div class="breath-grid">
+        <div class="breath-step" id="breathStep-inhale">
+          <strong>4 · Inhale (Generate Friction)</strong>
+          Stand or sit tall, hands at heart if comfortable. Inhale smoothly through the nose for 4 counts.
+          Let distracting thoughts and tension simply appear – they are the “friction cost”.
+        </div>
+        <div class="breath-step" id="breathStep-hold">
+          <strong>6 · Hold (Informational Conflict)</strong>
+          Hold gently at the top of the breath for 6 counts. Feel the urge to move, fidget, or break the pose.
+          This is your system showing where intent and reality are misaligned.
+        </div>
+        <div class="breath-step" id="breathStep-exhale">
+          <strong>8 · Exhale + Micro-Movement (Recursive Correction)</strong>
+          Exhale slowly for 8 counts. As you exhale, allow a small controlled movement (tree pose shift, slow arm arc, etc.)
+          so the correction is written into your balance and structure.
+        </div>
+      </div>
+
+      <div class="breath-timer">
+        <div class="breath-count" id="breathCount">–</div>
+        <div class="breath-phase-label" id="breathPhaseLabel">Tap “Start 4-6-8 Cycle” to begin.</div>
+        <div class="hint">
+          Let it auto-cycle or tap “Next phase” to move manually if you want more time in one part.
+        </div>
+        <button class="btn-primary" id="breathStartBtn">Start 4-6-8 Cycle (auto)</button>
+        <button class="btn-ghost" id="breathNextBtn">Next phase (manual)</button>
+        <button class="btn-secondary" id="breathStopBtn" style="display:none;">Stop breathing coach</button>
+      </div>
+
+      <hr style="border:none;border-top:1px solid var(--border);margin:10px 0;" />
+
+      <div>
+        <div class="section-label">Step 3 · Sound Field & Geometry</div>
+        <h2>Pink-noise ocean + harmonic geometry</h2>
+        <p class="small">
+          The sound field combines pink noise (neutral background) with harmonics drawn from the Platonic solids, the
+          green star-matrix <strong>Tetrateron</strong> (deep integrator), and the toroidal field. Your chat plus any bio data
+          and fine-tune settings determine which voices lead.
+        </p>
+
+        <canvas id="geomCanvas"></canvas>
+        <div id="geomWarning" class="hint" style="display:none;margin-top:4px;">
+          3D view not available (graphics library not loaded). Sound still works normally.
+        
+        <h3 style="margin-top:10px;">Aura visual (camera overlay)</h3>
+        <p class="small">
+          Optional. Shows a soft color field over the live camera based on your current element mix.
+        </p>
+        <button class="btn-ghost" id="auraStartBtn">Start aura view</button>
+        <button class="btn-secondary" id="auraStopBtn" style="display:none;">Stop aura view</button>
+        <video id="auraVideo" playsinline style="width:100%;max-height:200px;display:none;border-radius:8px;"></video>
+        <canvas id="auraCanvas" style="width:100%;max-height:200px;display:none;border-radius:8px;"></canvas>
+
+</div>
+
+        <div style="margin-top:8px;">
+          <div class="phase-label" id="phaseLabel">No sound session running.</div>
+          <div class="phase-name" id="phaseName"></div>
+          <div>
+            <span class="pill" id="elementPill" style="display:none;"></span>
+            <span class="pill" id="rolePill" style="display:none;"></span>
+            <span class="pill" id="modePill" style="display:none;"></span>
+          </div>
+          <div class="timer" id="timerText"></div>
+          <div class="guidance" id="guidanceText"></div>
+          <div class="weights">
+            <div id="elementWeightsText"></div>
+            <div id="shapeWeightsText"></div>
+          </div>
+          <div class="weights" id="freqSummaryText"></div>
+        </div>
+
+        
+        <label style="font-size:0.78rem;display:block;margin-top:8px;margin-bottom:4px;">
+          <input type="checkbox" id="mirrorMode" />
+          Acausal Resonance Mirror (voice + bio drive 90%, chat 10%)
+        </label>
+<button class="btn-primary" id="startSessionBtn">Start sound field</button>
+        <button class="btn-secondary" id="stopSessionBtn" style="display:none;">Stop sound</button>
+        <button class="btn-ghost" id="testToneBtn">Test tone (440 Hz · 2 sec)</button>
+        <div class="status" id="sessionStatus"></div>
+        <p class="hint">
+          For precise work use headphones. For ambient support, low-volume speakers are fine.
+          Avoid deep-relaxation use while driving – if used in a car, keep it gentle and stay focused on the road.
+        </p>
+      </div>
+    </section>
+
+    <!-- RIGHT: Post-session + History -->
+    <section class="card">
+      <div class="section-label">Step 4 · Track the iteration</div>
+      <h2>After-session check-in & history</h2>
+      <p class="small">
+        When the sound stops, rate how you feel now. The app logs before/after and, if enabled, your bio markers,
+        so you can watch coherence build across sessions.
+      </p>
+
+      <div id="postSessionForm" style="display:none;">
+        <h3>Post-session state</h3>
+        <p class="small">Use your same 0–10 sense, but based on how you feel now.</p>
+        <div style="font-size:0.78rem;">
+          <label>Body tension (now)</label>
+          <input type="range" id="bodyTensionPost" min="0" max="10" step="1" value="3" />
+          <span id="bodyTensionPostVal">3</span><br/>
+          <label>Mind scatter (now)</label>
+          <input type="range" id="mindScatterPost" min="0" max="10" step="1" value="3" />
+          <span id="mindScatterPostVal">3</span><br/>
+          <label>Emotion intensity (now)</label>
+          <input type="range" id="emotionChargePost" min="0" max="10" step="1" value="3" />
+          <span id="emotionChargePostVal">3</span><br/>
+          <label>Will strength (now)</label>
+          <input type="range" id="willStrengthPost" min="0" max="10" step="1" value="6" />
+          <span id="willStrengthPostVal">6</span><br/>
+          <label>Boundary sense (now)</label>
+          <input type="range" id="boundarySensePost" min="0" max="10" step="1" value="6" />
+          <span id="boundarySensePostVal">6</span>
+        </div>
+        <button class="btn-primary" id="saveOutcomeBtn">Save outcome</button>
+        <div class="status" id="postStatus"></div>
+      </div>
+
+      <h3>Recent outcomes</h3>
+      <div id="historyList" style="max-height:260px;overflow:auto;font-size:0.78rem;"></div>
+      <button class="btn-ghost" id="clearHistoryBtn">Clear history</button>
+    </section>
+  </div>
+</main>
+
+<script>
+/***********************
+ * STATE VECTOR
+ ***********************/
+const stateVector = {
+  bodyTension: 6,
+  mindScatter: 6,
+  emotionCharge: 6,
+  willStrength: 5,
+  boundarySense: 5,
+  intention: "ground_and_stabilize",
+  ancientMode: "none",
+  auraColor: "none",
+  playbackEnv: "headphones",
+  sessionLengthSec: 600,
+};
+
+function clamp01(x){ return Math.max(0, Math.min(10, x)); }
+
+function syncControlsFromVector(){
+  const v = stateVector;
+  const anc = document.getElementById("ancientModeSelect");
+  const aura = document.getElementById("auraSelect");
+  const env = document.getElementById("envSelect");
+  const len = document.getElementById("lengthSelect");
+  if (anc) anc.value = v.ancientMode;
+  if (aura) aura.value = v.auraColor;
+  if (env) env.value = v.playbackEnv;
+  if (len) len.value = String(v.sessionLengthSec || 600);
+}
+
+
+/********** VOICE ANALYSIS STATE **********/
+let micStream = null;
+let micSourceNode = null;
+let micAnalyser = null;
+let micDataTime = null;
+let micDataFreq = null;
+let micAnalysisId = null;
+let micActive = false;
+
+const voiceMetrics = {
+  rmsHistory: [],
+  f0History: [],
+  pitchRangeHistory: [],
+  lastEnvelopeCrossings: [],
+  lastEnvAbove: false,
+  lastEnvelopeTime: 0,
+  lastUpdateTime: 0,
+  elementMix: null
+};
+
+function estimateF0AutoCorrelation(timeData, sampleRate) {
+  let n = timeData.length;
+  let mean = 0;
+  for (let i=0;i<n;i++) mean += timeData[i];
+  mean /= n;
+  const buf = new Float32Array(n);
+  for (let i=0;i<n;i++) buf[i] = timeData[i] - mean;
+
+  let maxLag = Math.floor(sampleRate / 80);
+  let minLag = Math.floor(sampleRate / 400);
+  let bestLag = -1;
+  let bestCorr = 0;
+
+  for (let lag = minLag; lag <= maxLag; lag++) {
+    let corr = 0;
+    for (let i=0;i<n-lag;i++) {
+      corr += buf[i] * buf[i+lag];
+    }
+    if (corr > bestCorr) {
+      bestCorr = corr;
+      bestLag = lag;
+    }
+  }
+  if (bestLag === -1 || bestCorr < 1e-3) return 0;
+  return sampleRate / bestLag;
+}
+
+async function startVoiceAnalysis() {
+  const statusEl = document.getElementById("voiceStatus");
+  const startBtn = document.getElementById("voiceStartBtn");
+  const stopBtn = document.getElementById("voiceStopBtn");
+  try {
+    const ctx = ensureAudioContext();
+    if (!ctx) {
+      if (statusEl) statusEl.textContent = "Web Audio not supported in this browser.";
+      return;
+    }
+    if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+      if (statusEl) statusEl.textContent = "Microphone access is not supported on this device.";
+      return;
+    }
+
+    micStream = await navigator.mediaDevices.getUserMedia({ audio: true });
+    micSourceNode = ctx.createMediaStreamSource(micStream);
+    micAnalyser = ctx.createAnalyser();
+    micAnalyser.fftSize = 2048;
+    const bufLen = micAnalyser.fftSize;
+    micDataTime = new Float32Array(bufLen);
+    micDataFreq = new Uint8Array(micAnalyser.frequencyBinCount);
+
+    micSourceNode.connect(micAnalyser);
+    micActive = true;
+
+    voiceMetrics.rmsHistory = [];
+    voiceMetrics.f0History = [];
+    voiceMetrics.pitchRangeHistory = [];
+    voiceMetrics.lastEnvelopeCrossings = [];
+    voiceMetrics.lastEnvAbove = false;
+    voiceMetrics.elementMix = null;
+
+    if (startBtn) startBtn.style.display = "none";
+    if (stopBtn) stopBtn.style.display = "inline-block";
+    if (statusEl) statusEl.textContent = (typeof ashGetMsg === "function" ? ashGetMsg("micOn") : "Mic active: your voice is blending with chat + bio to drive the elements.");
+    runMicAnalysisLoop();
+  } catch (e) {
+    console.error(e);
+    if (statusEl) statusEl.textContent = "Could not start microphone: " + e.message;
+  }
+}
+
+function stopVoiceAnalysis() {
+  const statusEl = document.getElementById("voiceStatus");
+  const startBtn = document.getElementById("voiceStartBtn");
+  const stopBtn = document.getElementById("voiceStopBtn");
+
+  micActive = false;
+  if (micAnalysisId) {
+    cancelAnimationFrame(micAnalysisId);
+    micAnalysisId = null;
+  }
+  if (micSourceNode) {
+    try { micSourceNode.disconnect(); } catch(e){}
+    micSourceNode = null;
+  }
+  if (micStream) {
+    micStream.getTracks().forEach(t => t.stop());
+    micStream = null;
+  }
+  micAnalyser = null;
+  voiceMetrics.elementMix = null;
+
+  if (startBtn) startBtn.style.display = "inline-block";
+  if (stopBtn) stopBtn.style.display = "none";
+  if (statusEl) statusEl.textContent = (typeof ashGetMsg === "function" ? ashGetMsg("micOff") : "Mic is off. Click “Start voice analysis” and grant permission.");
+  const metrics = document.getElementById("voiceMetrics");
+  if (metrics) metrics.textContent = "";
+}
+
+function runMicAnalysisLoop() {
+  if (!micActive || !micAnalyser) return;
+  const ctx = audioCtx;
+  const sr = ctx.sampleRate;
+  const statusEl = document.getElementById("voiceStatus");
+  const metricsEl = document.getElementById("voiceMetrics");
+
+  function step() {
+    if (!micActive || !micAnalyser) return;
+    micAnalyser.getFloatTimeDomainData(micDataTime);
+    micAnalyser.getByteFrequencyData(micDataFreq);
+
+    let sumSq = 0;
+    for (let i=0;i<micDataTime.length;i++) {
+      const v = micDataTime[i];
+      sumSq += v*v;
+    }
+    const rms = Math.sqrt(sumSq / micDataTime.length);
+    voiceMetrics.rmsHistory.push(rms);
+    if (voiceMetrics.rmsHistory.length > 50) voiceMetrics.rmsHistory.shift();
+
+    const f0 = estimateF0AutoCorrelation(micDataTime, sr);
+    if (f0 > 50 && f0 < 500) {
+      voiceMetrics.f0History.push(f0);
+      if (voiceMetrics.f0History.length > 40) voiceMetrics.f0History.shift();
+    }
+
+    const binCount = micDataFreq.length;
+    const nyquist = sr / 2;
+    const highStartHz = 4000;
+    const highStartBin = Math.floor(highStartHz / nyquist * binCount);
+    let hfSum = 0;
+    let hfBins = 0;
+    for (let i = highStartBin; i < binCount; i++) {
+      hfSum += micDataFreq[i];
+      hfBins++;
+    }
+    const hfAvg = hfBins > 0 ? hfSum / hfBins : 0;
+
+    const now = performance.now();
+    const env = rms;
+    const threshold = 0.03;
+    const lastEnvAbove = voiceMetrics.lastEnvAbove;
+    const isAbove = env > threshold;
+    if (isAbove && !lastEnvAbove) {
+      voiceMetrics.lastEnvelopeCrossings.push(now);
+      const fiveSecAgo = now - 5000;
+      voiceMetrics.lastEnvelopeCrossings =
+        voiceMetrics.lastEnvelopeCrossings.filter(t => t >= fiveSecAgo);
+    }
+    voiceMetrics.lastEnvAbove = isAbove;
+
+    let pitchRange = 0;
+    if (voiceMetrics.f0History.length > 5) {
+      let minF = Infinity, maxF = 0;
+      voiceMetrics.f0History.forEach(f => { if (f<minF) minF=f; if (f>maxF) maxF=f; });
+      pitchRange = maxF - minF;
+      voiceMetrics.pitchRangeHistory.push(pitchRange);
+      if (voiceMetrics.pitchRangeHistory.length > 40) voiceMetrics.pitchRangeHistory.shift();
+    }
+
+    let volStd = 0;
+    if (voiceMetrics.rmsHistory.length > 5) {
+      const arr = voiceMetrics.rmsHistory;
+      let m = arr.reduce((a,b)=>a+b,0) / arr.length;
+      let s = 0;
+      arr.forEach(v => { const d=v-m; s += d*d; });
+      volStd = Math.sqrt(s / arr.length);
+    }
+
+    const meanRms = voiceMetrics.rmsHistory.length
+      ? voiceMetrics.rmsHistory.reduce((a,b)=>a+b,0) / voiceMetrics.rmsHistory.length
+      : 0;
+    const meanVolumeScore = Math.max(0, Math.min(10, meanRms / 0.2 * 10));
+    const volFluctScore  = Math.max(0, Math.min(10, volStd / 0.08 * 10));
+
+    const crossings = voiceMetrics.lastEnvelopeCrossings;
+    let speechRateScore = 0;
+    if (crossings.length >= 2) {
+      const dt = (crossings[crossings.length-1] - crossings[0]) / 1000;
+      if (dt > 0) {
+        const perSec = (crossings.length-1) / dt;
+        speechRateScore = Math.max(0, Math.min(10, perSec / 6 * 10));
+      }
+    }
+
+    let pitchRangeScore = 0;
+    if (pitchRange > 0) {
+      pitchRangeScore = Math.max(0, Math.min(10, pitchRange / 150 * 10));
+    }
+
+    let hfEnergyScore = 0;
+    if (hfAvg > 0) {
+      hfEnergyScore = Math.max(0, Math.min(10, (hfAvg - 50) / 150 * 10));
+    }
+
+    let lowF0Score = 0;
+    if (voiceMetrics.f0History.length > 0) {
+      const fAvg = voiceMetrics.f0History.reduce((a,b)=>a+b,0)/voiceMetrics.f0History.length;
+      const fNorm = Math.max(0, Math.min(1, (300 - fAvg) / 200));
+      lowF0Score = fNorm * 10;
+    }
+
+    const fire = meanVolumeScore / 10;
+    const water = volFluctScore / 10;
+    const air = (0.6 * speechRateScore + 0.4 * pitchRangeScore) / 10;
+    const aether = hfEnergyScore / 10;
+    const earth = lowF0Score / 10;
+    const field = 0.2;
+
+    let wVoice = { fire, air, earth, water, aether, field };
+    let sum = Object.values(wVoice).reduce((a,b)=>a+b,0);
+    if (sum > 0) {
+      Object.keys(wVoice).forEach(k => wVoice[k] = wVoice[k] / sum);
+    }
+    voiceMetrics.elementMix = wVoice;
+
+    if (metricsEl) {
+      const txt =
+        "Mean volume: " + meanVolumeScore.toFixed(1) + "/10\n" +
+        "Vol fluctuation: " + volFluctScore.toFixed(1) + "/10\n" +
+        "Speech rate: " + speechRateScore.toFixed(1) + "/10\n" +
+        "Pitch range: " + pitchRangeScore.toFixed(1) + "/10\n" +
+        "High-freq energy: " + hfEnergyScore.toFixed(1) + "/10\n" +
+        "Low F0 (depth): " + lowF0Score.toFixed(1) + "/10\n\n" +
+        "Voice element mix · " +
+        "Fire " + (wVoice.fire*100|0) + "% · " +
+        "Air " + (wVoice.air*100|0) + "% · " +
+        "Earth " + (wVoice.earth*100|0) + "% · " +
+        "Water " + (wVoice.water*100|0) + "% · " +
+        "Aether " + (wVoice.aether*100|0) + "% · " +
+        "Field " + (wVoice.field*100|0) + "%";
+      metricsEl.textContent = txt;
+    }
+    if (statusEl && micActive) {
+      statusEl.textContent = (typeof ashGetMsg === "function" ? ashGetMsg("micOn") : "Mic active: your voice is blending with chat + bio to drive the elements.");
+    }
+
+    micAnalysisId = requestAnimationFrame(step);
+  }
+
+  micAnalysisId = requestAnimationFrame(step);
+}
+
+function updateVector(updates){
+  Object.keys(updates||{}).forEach(k=>{
+    let v = updates[k];
+    if (typeof v === "number" && ["bodyTension","mindScatter","emotionCharge","willStrength","boundarySense"].includes(k)){
+      stateVector[k] = clamp01(v);
+    } else {
+      stateVector[k] = v;
+    }
+  });
+  syncControlsFromVector();
+  renderVectorSummary();
+}
+
+function renderVectorSummary(){
+  const v = stateVector;
+  const txt =
+    `Body ${v.bodyTension}/10 · Mind ${v.mindScatter}/10 · Emotion ${v.emotionCharge}/10 · `+
+    `Will ${v.willStrength}/10 · Boundaries ${v.boundarySense}/10\n`+
+    `Intent: ${v.intention} · Mode: ${v.ancientMode} · Aura: ${v.auraColor} · Env: ${v.playbackEnv} · `+
+    `Length: ${Math.round(v.sessionLengthSec/60)} min`;
+  document.getElementById("vectorText").textContent = txt;
+}
+
+/***********************
+ * SHAPES & HARMONICS
+ ***********************/
+const ShapesConfig = [
+  { id: "tetrahedron",  element: "fire",  name: "Tetrahedron",     sessionRole: "Activation / Will spark" },
+  { id: "octahedron",   element: "air",   name: "Octahedron",      sessionRole: "Mental clarity / rebalancing" },
+  { id: "cube",         element: "earth", name: "Cube",            sessionRole: "Grounding / Structural support" },
+  { id: "icosahedron",  element: "water", name: "Icosahedron",     sessionRole: "Emotional flow / Purification" },
+  { id: "dodecahedron", element: "aether",name: "Dodecahedron",    sessionRole: "Coherence / DNA-style ordering" },
+  { id: "tetrateron",   element: "aether",name: "Tetrateron (Star Matrix)", sessionRole: "Deep integration / A-temporal carrier" },
+  { id: "sphere_torus", element: "field", name: "Sphere / Torus",  sessionRole: "Protective field / Envelope" },
+];
+
+const CalibratedResonanceHints = [
+  { shapeId: "tetrahedron",  freqs: [720, 360, 180, 90] },
+  { shapeId: "octahedron",   freqs: [1440, 720, 360, 144] },
+  { shapeId: "cube",         freqs: [2160, 1080, 540, 270] },
+  { shapeId: "icosahedron",  freqs: [3600, 1800, 900, 450] },
+  { shapeId: "dodecahedron", freqs: [6480, 432, 216, 108] },
+  { shapeId: "tetrateron",   freqs: [864, 1728, 3456, 6912] },
+  { shapeId: "sphere_torus", freqs: [] }, // torus is LFO only
+];
+
+function getShapeById(id){ return ShapesConfig.find(s=>s.id===id); }
+function frequenciesForShape(id){
+  const h = CalibratedResonanceHints.find(x=>x.shapeId===id);
+  return h ? h.freqs.slice() : [];
+}
+
+/***********************
+ * ELEMENT WEIGHTS FROM VECTOR + BIO
+ ***********************/
+function baseElementWeightsFromVector(v){
+  let w = { fire:0, air:0, earth:0, water:0, aether:0, field:0 };
+  w.earth += v.bodyTension * 1.0;
+  w.water += v.bodyTension * 0.6;
+  w.air   += v.mindScatter * 1.0;
+  w.earth += v.mindScatter * 0.4;
+  w.water += v.emotionCharge * 1.0;
+  w.aether+= v.emotionCharge * 0.7;
+  const willDef = Math.max(0, 10 - v.willStrength);
+  w.fire  += willDef * 0.8;
+  w.earth += willDef * 0.4;
+  const boundDef = Math.max(0, 10 - v.boundarySense);
+  w.field += boundDef * 0.9;
+  w.earth += boundDef * 0.5;
+
+  switch(v.intention){
+    case "ground_and_stabilize": w.earth+=6; w.field+=2; break;
+    case "release_emotions":     w.water+=6; w.aether+=3; break;
+    case "clarify_mind":         w.air+=6;   w.earth+=2; break;
+    case "activate_will":        w.fire+=6;  w.earth+=2; break;
+    case "expand_and_connect":   w.aether+=6;w.water+=2; break;
+    case "protect_energy":       w.field+=6; w.earth+=2; break;
+    case "intimacy_support":     w.water+=6; w.fire+=4;  w.aether+=2; break;
+  }
+
+  switch(v.ancientMode){
+    case "protection":    w.field+=8; w.earth+=3; break;
+    case "vitality":      w.fire+=7;  w.earth+=4; break;
+    case "purification":  w.water+=5; w.air+=4;   break;
+    case "wisdom":        w.air+=5;   w.aether+=5;break;
+    case "dreams":        w.water+=4; w.aether+=6;break;
+    case "love_intimacy": w.water+=7; w.fire+=4;  w.aether+=3; break;
+  }
+
+  switch(v.auraColor){
+    case "white_gray": w.field+=5; w.aether+=3; break;
+    case "red":        w.fire+=7;  w.earth+=3;  break;
+    case "orange":     w.fire+=4;  w.water+=4;  break;
+    case "yellow":     w.fire+=3;  w.air+=4;    break;
+    case "green":      w.water+=6; w.air+=2;    break;
+    case "blue":       w.air+=6;   w.aether+=3; break;
+    case "violet":     w.aether+=7;w.water+=2;  break;
+  }
+
+  let sum = Object.values(w).reduce((a,b)=>a+b,0);
+  if (sum<=0) sum=1;
+  Object.keys(w).forEach(k=>w[k]=w[k]/sum);
+  return w;
+}
+
+function adjustElementWeightsForBio(w){
+  if (!document.getElementById("bioEnabled").checked) return w;
+  const out = Object.assign({}, w);
+  let hr = Number(document.getElementById("bioHR").value);
+  let hrv = Number(document.getElementById("bioHRV").value);
+  let sleep = Number(document.getElementById("bioSleep").value);
+  let stress = Number(document.getElementById("bioStress").value);
+
+  if ((hr && hr>80) || (stress && stress>=7)){
+    out.earth += 0.08;
+    out.field += 0.06;
+    out.fire  -= 0.05;
+  }
+  if (hrv && hrv<40){
+    out.earth += 0.06;
+    out.aether-= 0.04;
+  }
+  if (hrv && hrv>80 && (!stress || stress<=4)){
+    out.aether += 0.07;
+    out.water  += 0.04;
+  }
+  if (sleep && sleep<5){
+    out.earth += 0.05;
+    out.water += 0.04;
+  }
+
+  let sum = Object.values(out).reduce((a,b)=>a+b,0);
+  if (sum<=0) sum=1;
+  Object.keys(out).forEach(k=>out[k]=Math.max(0,out[k])/sum);
+  return out;
+}
+
+function shapeWeightsFromElements(elW){
+  const sw={};
+  ShapesConfig.forEach(s=>{ sw[s.id]=elW[s.element] || 0; });
+  let sum = Object.values(sw).reduce((a,b)=>a+b,0);
+  if (sum<=0) sum=1;
+  Object.keys(sw).forEach(k=>sw[k]=sw[k]/sum);
+  return sw;
+}
+function chooseDominantShape(sw){
+  let bestId="icosahedron", best=-Infinity;
+  for (const [id,val] of Object.entries(sw)){
+    if (val>best){ best=val; bestId=id; }
+  }
+  return bestId;
+}
+
+/***********************
+ * AUDIO ENGINE
+ ***********************/
+let audioCtx=null, masterGain=null, noiseSource=null, noiseFilter=null, noiseGain=null;
+let toneOscs=[], toneGains=[], lfoOsc=null, lfoGain=null;
+let sessionTimerId=null, sessionSecondsRemaining=0;
+
+function ensureAudioContext(){
+  if (!audioCtx){
+    const AC = window.AudioContext || window.webkitAudioContext;
+    if (!AC){
+      document.getElementById("sessionStatus").textContent = "Web Audio not supported in this browser.";
+      return null;
+    }
+    audioCtx = new AC();
+  }
+  if (audioCtx.state==="suspended"){ audioCtx.resume(); }
+  return audioCtx;
+}
+function createPinkNoiseChain(){
+  const ctx = audioCtx;
+  const bufferSize = 2*ctx.sampleRate;
+  const noiseBuffer = ctx.createBuffer(1, bufferSize, ctx.sampleRate);
+  const out = noiseBuffer.getChannelData(0);
+  for (let i=0;i<bufferSize;i++) out[i] = Math.random()*2 - 1;
+  const whiteNoise = ctx.createBufferSource();
+  whiteNoise.buffer=noiseBuffer; whiteNoise.loop=true;
+  const filter = ctx.createBiquadFilter();
+  filter.type="lowpass"; filter.frequency.value=4000; filter.Q.value=0.7;
+  const gain = ctx.createGain(); gain.gain.value=0.15;
+  whiteNoise.connect(filter); filter.connect(gain);
+  return {whiteNoise, filter, gain};
+}
+function stopAudio(){
+  if (!audioCtx) return;
+  if (noiseSource){ try{noiseSource.stop();}catch{} noiseSource.disconnect(); noiseSource=null; }
+  if (lfoOsc){ try{lfoOsc.stop();}catch{} lfoOsc.disconnect(); lfoOsc=null; }
+  toneOscs.forEach(o=>{ try{o.stop();}catch{} o.disconnect(); });
+  toneGains.forEach(g=>g.disconnect());
+  toneOscs=[]; toneGains=[];
+  if (noiseGain) noiseGain.disconnect();
+  if (noiseFilter) noiseFilter.disconnect();
+  noiseGain=null; noiseFilter=null;
+  if (masterGain) masterGain.disconnect();
+  masterGain=null;
+}
+function computeFriction(v){
+  const willDef = Math.max(0, 10 - v.willStrength);
+  const boundDef = Math.max(0, 10 - v.boundarySense);
+  const raw = v.bodyTension + v.mindScatter + v.emotionCharge + willDef + boundDef;
+  return Math.min(1, raw / 50);
+}
+function buildAudioRecipe(){
+  const frictionIndex = computeFriction(stateVector);
+  let elementWeights = baseElementWeightsFromVector(stateVector);
+  elementWeights = adjustElementWeightsForBio(elementWeights);
+
+  // Blend in live voice elements and mirror mode if active
+  const mirrorMode = document.getElementById("mirrorMode")?.checked;
+  if (typeof micActive !== "undefined" && micActive && voiceMetrics.elementMix) {
+    const voiceW = voiceMetrics.elementMix;
+    let blendSubjective = 0.6;
+    let blendVoice = 0.4;
+    if (mirrorMode) {
+      blendSubjective = 0.1;
+      blendVoice = 0.9;
+    }
+    const keys = ["fire","air","earth","water","aether","field"];
+    const combined = {};
+    keys.forEach(k => {
+      const a = elementWeights[k] || 0;
+      const b = voiceW[k] || 0;
+      combined[k] = a * blendSubjective + b * blendVoice;
+    });
+    let sum = Object.values(combined).reduce((a,b)=>a+b,0);
+    if (sum > 0) {
+      keys.forEach(k => combined[k] = combined[k] / sum);
+      elementWeights = combined;
+    }
+  }
+
+  const shapeWeights = shapeWeightsFromElements(elementWeights);
+  const dominantShapeId = chooseDominantShape(shapeWeights);
+  const dominantShape = getShapeById(dominantShapeId);
+  const playbackEnv = stateVector.playbackEnv;
+
+  const sortedShapes = Object.entries(shapeWeights)
+    .sort((a,b)=>b[1]-a[1]).map(e=>e[0]);
+  const activeShapeIds = sortedShapes.slice(0,3);
+  let freqs=[];
+  activeShapeIds.forEach(id=>{
+    frequenciesForShape(id).forEach(f=>{ if (f>=20) freqs.push(f);});
+  });
+  freqs = Array.from(new Set(freqs)).slice(0,8);
+
+  let noiseFilterHz = 4000;
+  let noiseLevel = 0.15;
+  noiseFilterHz -= elementWeights.earth*1500;
+  noiseLevel   += elementWeights.earth*0.12;
+  noiseFilterHz += elementWeights.air*800;
+
+  let lfoHz=0, lfoDepth=0;
+  if (elementWeights.field>0.1){
+    lfoHz = 0.5 + elementWeights.field*1.5;
+    lfoDepth = 0.05 + elementWeights.field*0.12;
+  } else if (elementWeights.water>0.2){
+    lfoHz = 0.3 + elementWeights.water*1.0;
+    lfoDepth = 0.02 + elementWeights.water*0.1;
+  }
+
+  if (stateVector.intention==="intimacy_support"){
+    noiseFilterHz = Math.max(2500, noiseFilterHz-800);
+    noiseLevel += 0.05;
+    lfoHz = 0.6; lfoDepth = 0.12;
+  }
+
+  if (playbackEnv==="speakers"){
+    noiseLevel *= 0.9;
+    lfoDepth *= 0.8;
+  } else if (playbackEnv==="car"){
+    noiseFilterHz = Math.max(1500, noiseFilterHz);
+    lfoDepth *= 0.5;
+    if (freqs.length){
+      freqs = freqs.map(f=>Math.min(Math.max(f, 80), 4000));
+    }
+  }
+
+  noiseFilterHz = Math.max(500, Math.min(noiseFilterHz,8000));
+  noiseLevel = Math.max(0.05, Math.min(noiseLevel,0.4));
+  const toneLevel = playbackEnv==="car"
+    ? 0.08 + (1-frictionIndex)*0.08
+    : 0.06 + (1-frictionIndex)*0.07;
+
+  return {
+    frictionIndex,
+    elementWeights,
+    shapeWeights,
+    dominantShapeId,
+    dominantShape,
+    frequencies: freqs,
+    noiseFilterHz,
+    noiseLevel,
+    lfoHz,
+    lfoDepth,
+    toneLevel,
+    playbackEnv,
+  };
+}
+function startAudioSession(recipe){
+  const ctx = ensureAudioContext();
+  if (!ctx) return;
+  stopAudio();
+  masterGain = ctx.createGain();
+  masterGain.gain.value=0.9;
+
+  const chain = createPinkNoiseChain();
+  noiseSource=chain.whiteNoise; noiseFilter=chain.filter; noiseGain=chain.gain;
+  noiseFilter.frequency.value = recipe.noiseFilterHz;
+  noiseGain.gain.value = recipe.noiseLevel;
+  noiseGain.connect(masterGain);
+  noiseSource.start();
+
+  recipe.frequencies.forEach(freq=>{
+    const osc = ctx.createOscillator();
+    const g = ctx.createGain();
+    osc.type="sine"; osc.frequency.value=freq;
+    g.gain.value=recipe.toneLevel;
+    osc.connect(g); g.connect(masterGain);
+    osc.start();
+    toneOscs.push(osc); toneGains.push(g);
+  });
+
+  if (recipe.lfoHz>0 && recipe.lfoDepth>0){
+    const lfo = ctx.createOscillator();
+    const lg = ctx.createGain();
+    lfo.frequency.value=recipe.lfoHz;
+    lg.gain.value=recipe.lfoDepth;
+    lfo.connect(lg); lg.connect(noiseGain.gain);
+    lfo.start();
+    lfoOsc=lfo; lfoGain=lg;
+  }
+
+  const frictionGain = 0.7 + recipe.frictionIndex*0.6;
+  masterGain.gain.value *= frictionGain;
+  masterGain.connect(ctx.destination);
+}
+function playTestTone(){
+  const ctx = ensureAudioContext();
+  if (!ctx) return;
+  const osc = ctx.createOscillator();
+  const g = ctx.createGain();
+  osc.type="sine"; osc.frequency.value=440;
+  g.gain.value=0.25;
+  osc.connect(g); g.connect(ctx.destination);
+  osc.start();
+  setTimeout(()=>{ try{osc.stop();}catch{} osc.disconnect(); g.disconnect(); },2000);
+}
+
+/***********************
+ * 3D RENDERING
+ ***********************/
+let scene=null,camera=null,renderer=null,geomMesh=null;
+let currentShapeId="icosahedron";
+function init3D(){
+  if (typeof THREE==="undefined"){
+    document.getElementById("geomWarning").style.display="block";
+    return;
+  }
+  const canvas = document.getElementById("geomCanvas");
+  scene = new THREE.Scene();
+  camera = new THREE.PerspectiveCamera(60, canvas.clientWidth/canvas.clientHeight, 0.1, 100);
+  camera.position.z=3;
+  renderer = new THREE.WebGLRenderer({canvas, antialias:true, alpha:true});
+  renderer.setSize(canvas.clientWidth, canvas.clientHeight, false);
+  const amb = new THREE.AmbientLight(0xffffff,0.7); scene.add(amb);
+  const dir = new THREE.DirectionalLight(0xffffff,0.7); dir.position.set(3,3,4); scene.add(dir);
+  updateGeometry(currentShapeId);
+  function animate(){
+    requestAnimationFrame(animate);
+    if (geomMesh){
+      const t = performance.now()*0.001;
+      geomMesh.rotation.x=t*0.25;
+      geomMesh.rotation.y=t*0.35;
+      const s = 1.0+0.08*Math.sin(t*1.5);
+      geomMesh.scale.set(s,s,s);
+    }
+    renderer.render(scene,camera);
+  }
+  animate();
+}
+function updateGeometry(shapeId){
+  currentShapeId=shapeId;
+  if (!scene || typeof THREE==="undefined") return;
+  if (geomMesh){
+    scene.remove(geomMesh);
+    geomMesh.geometry.dispose();
+    geomMesh.material.dispose();
+  }
+  let geometry;
+  switch(shapeId){
+    case "tetrahedron": geometry=new THREE.TetrahedronGeometry(1); break;
+    case "octahedron":  geometry=new THREE.OctahedronGeometry(1); break;
+    case "cube":        geometry=new THREE.BoxGeometry(1,1,1); break;
+    case "dodecahedron":geometry=new THREE.DodecahedronGeometry(1); break;
+    case "tetrateron":  geometry=new THREE.OctahedronGeometry(1.2); break; // star-matrix approx
+    case "sphere_torus":geometry=new THREE.TorusGeometry(1,0.3,16,100); break;
+    case "icosahedron":
+    default:            geometry=new THREE.IcosahedronGeometry(1); break;
+  }
+  const mat = new THREE.MeshStandardMaterial({metalness:0.4,roughness:0.2});
+  geomMesh = new THREE.Mesh(geometry,mat);
+  scene.add(geomMesh);
+}
+
+/***********************
+ * SESSION UI
+ ***********************/
+function updateTimerDisplay(){
+  const tt=document.getElementById("timerText");
+  const m=Math.floor(sessionSecondsRemaining/60);
+  const s=sessionSecondsRemaining%60;
+  tt.textContent = sessionSecondsRemaining>0
+    ? "Time remaining: "+m+":"+String(s).padStart(2,"0")
+    : "";
+}
+
+/********** HAPTIC PATTERNS **********/
+const HAPTIC_PATTERNS = {
+  fire:  [80, 40, 80, 40, 120],
+  water: [0, 200, 80, 200, 80],
+  earth: [200, 150, 200],
+  air:   [40, 100, 40, 100],
+  aether:[30, 70, 30, 200],
+  field: [60, 500]
+};
+
+function triggerHapticsForElement(element) {
+  try {
+    if (!("vibrate" in navigator)) return;
+    const pattern = HAPTIC_PATTERNS[element];
+    if (!pattern) return;
+    navigator.vibrate(pattern);
+  } catch(e) {
+    console.warn("Haptic error", e);
+  }
+}
+
+function startSession(){
+  const status=document.getElementById("sessionStatus");
+  const startBtn=document.getElementById("startSessionBtn");
+  const stopBtn=document.getElementById("stopSessionBtn");
+  const postForm=document.getElementById("postSessionForm");
+  status.textContent=""; status.classList.remove("status-strong");
+
+  let recipe;
+  try{
+    recipe = buildAudioRecipe();
+    startAudioSession(recipe);
+    if (recipe && recipe.dominantShape && recipe.dominantShape.element) {
+      triggerHapticsForElement(recipe.dominantShape.element);
+    }
+  }catch(e){
+    console.error(e);
+    status.textContent="Error starting audio: "+e.message;
+    return;
+  }
+
+  updateGeometry(recipe.dominantShapeId);
+  const phaseLabel=document.getElementById("phaseLabel");
+  const phaseName=document.getElementById("phaseName");
+  const elementPill=document.getElementById("elementPill");
+  const rolePill=document.getElementById("rolePill");
+  const modePill=document.getElementById("modePill");
+  const guidanceText=document.getElementById("guidanceText");
+  const elementWeightsText=document.getElementById("elementWeightsText");
+  const shapeWeightsText=document.getElementById("shapeWeightsText");
+  const freqSummaryText=document.getElementById("freqSummaryText");
+
+  phaseLabel.textContent="Session running · pink noise + harmonic field ("+stateVector.playbackEnv+")";
+  phaseName.textContent=recipe.dominantShape.name;
+  elementPill.style.display="inline-block";
+  elementPill.textContent="Element: "+recipe.dominantShape.element.toUpperCase();
+  rolePill.style.display="inline-block";
+  rolePill.textContent="Role: "+recipe.dominantShape.sessionRole;
+  if (stateVector.ancientMode!=="none"){
+    modePill.style.display="inline-block";
+    modePill.textContent="Mode: "+stateVector.ancientMode.replace("_"," ");
+  } else {
+    modePill.style.display="none";
+  }
+
+  guidanceText.textContent = makeIntentionDescription();
+
+  const ewParts=[];
+  Object.entries(recipe.elementWeights).forEach(([el,w])=>ewParts.push(el+": "+(w*100).toFixed(0)+"%"));
+  elementWeightsText.textContent="Element mix · "+ewParts.join(" · ");
+  const swParts=[];
+  Object.entries(recipe.shapeWeights).forEach(([sid,w])=>swParts.push(sid+": "+(w*100).toFixed(0)+"%"));
+  shapeWeightsText.textContent="Shape voices · "+swParts.join(" · ");
+  freqSummaryText.textContent = "Active harmonics (Hz) · "+(recipe.frequencies.length ? recipe.frequencies.join(", ") : "subtle-only / LFO field");
+
+  sessionSecondsRemaining = stateVector.sessionLengthSec || 600;
+  updateTimerDisplay();
+  if (sessionTimerId) clearInterval(sessionTimerId);
+  sessionTimerId=setInterval(()=>{
+    sessionSecondsRemaining--;
+    if (sessionSecondsRemaining<=0){ stopSession(); }
+    else updateTimerDisplay();
+  },1000);
+
+  startBtn.style.display="inline-block";
+  stopBtn.style.display="inline-block";
+  postForm.style.display="none";
+}
+function stopSession(){
+  const status=document.getElementById("sessionStatus");
+  const postForm=document.getElementById("postSessionForm");
+  stopAudio();
+  if (sessionTimerId){ clearInterval(sessionTimerId); sessionTimerId=null; }
+  document.getElementById("phaseLabel").textContent="Sound session stopped.";
+  document.getElementById("timerText").textContent="";
+  status.textContent="Take a few breaths. When you’re ready, log how you feel now.";
+  status.classList.add("status-strong");
+  postForm.style.display="block";
+}
+
+/***********************
+ * BREATHING COACH
+ ***********************/
+const breathingPhases = [
+  { id:"inhale", label:"Inhale through nose", seconds:4, elementId:"breathStep-inhale" },
+  { id:"hold",   label:"Hold – notice tension", seconds:6, elementId:"breathStep-hold" },
+  { id:"exhale", label:"Slow exhale + micro-movement", seconds:8, elementId:"breathStep-exhale" },
+];
+let breathIndex=0, breathRemaining=0, breathTimer=null, autoBreathing=false;
+
+function highlightBreathPhase(){
+  breathingPhases.forEach(p=>{
+    const el=document.getElementById(p.elementId);
+    if (!el) return;
+    if (breathingPhases[breathIndex].id===p.id) el.classList.add("breath-active");
+    else el.classList.remove("breath-active");
+  });
+}
+function updateBreathDisplay(){
+  const countEl=document.getElementById("breathCount");
+  const labelEl=document.getElementById("breathPhaseLabel");
+  const phase=breathingPhases[breathIndex];
+  countEl.textContent = breathRemaining>0 ? breathRemaining : phase.seconds;
+  labelEl.textContent = phase.label + " · " + phase.seconds + "-count";
+  highlightBreathPhase();
+}
+function startBreathCycle(auto=true){
+  autoBreathing = auto;
+  breathIndex=0;
+  breathRemaining=breathingPhases[0].seconds;
+  document.getElementById("breathStopBtn").style.display="inline-block";
+  updateBreathDisplay();
+  if (breathTimer) clearInterval(breathTimer);
+  breathTimer=setInterval(()=>{
+    breathRemaining--;
+    if (breathRemaining<=0){
+      if (autoBreathing){
+        breathIndex = (breathIndex+1) % breathingPhases.length;
+        breathRemaining = breathingPhases[breathIndex].seconds;
+      } else {
+        clearInterval(breathTimer); breathTimer=null;
+        breathRemaining=0;
+      }
+    }
+    updateBreathDisplay();
+  },1000);
+}
+function nextBreathPhaseManual(){
+  autoBreathing=false;
+  if (breathTimer){ clearInterval(breathTimer); breathTimer=null; }
+  breathIndex = (breathIndex+1) % breathingPhases.length;
+  breathRemaining = breathingPhases[breathIndex].seconds;
+  updateBreathDisplay();
+}
+function stopBreathCoach(){
+  autoBreathing=false;
+  if (breathTimer){ clearInterval(breathTimer); breathTimer=null; }
+  document.getElementById("breathCount").textContent="–";
+  document.getElementById("breathPhaseLabel").textContent="Breathing coach paused.";
+  breathingPhases.forEach(p=>{
+    const el=document.getElementById(p.elementId);
+    if (el) el.classList.remove("breath-active");
+  });
+  document.getElementById("breathStopBtn").style.display="none";
+}
+
+/***********************
+ * HISTORY STORAGE
+ ***********************/
+const HISTORY_KEY="acausal_sound_healing_outcomes_v9";
+function getOutcomes(){
+  try{
+    const raw=localStorage.getItem(HISTORY_KEY);
+    if (!raw) return [];
+    return JSON.parse(raw);
+  }catch{return [];}
+}
+function saveOutcomeRecord(outcome){
+  const ex=getOutcomes();
+  ex.unshift(outcome);
+  localStorage.setItem(HISTORY_KEY, JSON.stringify(ex.slice(0,80)));
+}
+function renderHistory(){
+  const list=document.getElementById("historyList");
+  list.innerHTML="";
+  const outcomes=getOutcomes();
+  if (!outcomes.length){ list.textContent="No saved sessions yet."; return; }
+  outcomes.forEach(o=>{
+    const div=document.createElement("div");
+    div.className="history-item";
+    const d=new Date(o.timestamp);
+    const deltas="ΔBody "+o.deltaBodyTension+
+      ", ΔMind "+o.deltaMindScatter+
+      ", ΔEmotion "+o.deltaEmotionCharge+
+      ", ΔWill "+o.deltaWillStrength+
+      ", ΔBoundary "+o.deltaBoundarySense;
+    div.textContent=d.toLocaleString()+" · Intent: "+o.intention+
+      (o.ancientMode && o.ancientMode!=="none" ? " · Mode: "+o.ancientMode:"")+
+      (o.auraColor && o.auraColor!=="none" ? " · Aura: "+o.auraColor:"")+
+      " · Env: "+(o.playbackEnv || "n/a")+
+      " · "+deltas;
+    list.appendChild(div);
+  });
+}
+function buildOutcome(){
+  const post={
+    bodyTension:Number(document.getElementById("bodyTensionPost").value),
+    mindScatter:Number(document.getElementById("mindScatterPost").value),
+    emotionCharge:Number(document.getElementById("emotionChargePost").value),
+    willStrength:Number(document.getElementById("willStrengthPost").value),
+    boundarySense:Number(document.getElementById("boundarySensePost").value),
+  };
+  return {
+    timestamp:new Date().toISOString(),
+    intention:stateVector.intention,
+    ancientMode:stateVector.ancientMode,
+    auraColor:stateVector.auraColor,
+    playbackEnv:stateVector.playbackEnv,
+    pre: Object.assign({}, stateVector),
+    post,
+    deltaBodyTension:post.bodyTension-stateVector.bodyTension,
+    deltaMindScatter:post.mindScatter-stateVector.mindScatter,
+    deltaEmotionCharge:post.emotionCharge-stateVector.emotionCharge,
+    deltaWillStrength:post.willStrength-stateVector.willStrength,
+    deltaBoundarySense:post.boundarySense-stateVector.boundarySense,
+  };
+}
+
+/***********************
+ * CHAT ENGINE
+ ***********************/
+const chatLogEl = document.getElementById("chatLog");
+function appendMsg(role,text){
+  const div=document.createElement("div");
+  div.className=role==="assistant"?"msg-assistant":"msg-user";
+  const span=document.createElement("span");
+  span.textContent=text;
+  div.appendChild(span);
+  chatLogEl.appendChild(div);
+  chatLogEl.scrollTop=chatLogEl.scrollHeight;
+}
+function ifContainsAny(t, words){
+  return words.some(w=>t.includes(w));
+}
+function analyzeTextAndUpdateVector(text){
+  const t = text.toLowerCase();
+  let v = Object.assign({}, stateVector);
+
+  // Emotions
+  if (ifContainsAny(t,["anxious","anxiety","panicky","nervous","on edge","overstimulated","overwhelmed"])){
+    v.mindScatter = Math.max(v.mindScatter, 8);
+    v.emotionCharge = Math.max(v.emotionCharge, 7);
+    v.boundarySense = Math.min(v.boundarySense, 4);
+    if (!(v.intention==="ground_and_stabilize" || v.intention==="protect_energy")){
+      v.intention = "protect_energy";
+    }
+    if (v.ancientMode==="none") v.ancientMode = "protection";
+  }
+  if (ifContainsAny(t,["sad","grief","grieving","heartbroken","lonely","loss","mourning","depressed","depression"])){
+    v.emotionCharge = Math.max(v.emotionCharge, 8);
+    v.bodyTension = Math.max(v.bodyTension, 5);
+    v.intention = "release_emotions";
+    if (v.auraColor==="none") v.auraColor = "green";
+  }
+  if (ifContainsAny(t,["angry","rage","furious","irritated","resentful","frustrated"])){
+    v.emotionCharge = Math.max(v.emotionCharge, 8);
+    v.willStrength = Math.max(v.willStrength, 6);
+    v.intention = "release_emotions";
+    if (v.ancientMode==="none") v.ancientMode = "purification";
+  }
+  if (ifContainsAny(t,["numb","flat","empty","disconnected","checked out"])){
+    v.emotionCharge = Math.min(v.emotionCharge, 4);
+    v.willStrength = Math.min(v.willStrength, 4);
+    v.intention = "expand_and_connect";
+  }
+
+  // Energy / fatigue
+  if (ifContainsAny(t,["tired","exhausted","drained","burned out","burnt out","fatigued","no energy"])){
+    v.willStrength = Math.min(v.willStrength, 3);
+    v.bodyTension = Math.max(v.bodyTension, 6);
+    v.intention = "ground_and_stabilize";
+    if (v.ancientMode==="none") v.ancientMode = "vitality";
+  }
+  if (ifContainsAny(t,["wired","jittery","hyper","can't sit still","restless"])){
+    v.willStrength = Math.max(v.willStrength, 7);
+    v.mindScatter = Math.max(v.mindScatter, 7);
+    v.intention = "clarify_mind";
+  }
+
+  // Focus / performance
+  if (ifContainsAny(t,["focus","concentrate","study","exam","deadline","work","project","mental clarity"])){
+    v.intention = "clarify_mind";
+    v.mindScatter = Math.max(v.mindScatter, 7);
+  }
+
+  // Boundaries / social
+  if (ifContainsAny(t,["drained around people","empath","taking on others","people pleasing","no boundaries","overwhelmed by others"])){
+    v.boundarySense = Math.min(v.boundarySense, 3);
+    v.intention = "protect_energy";
+    if (v.ancientMode==="none") v.ancientMode = "protection";
+  }
+
+  // Intimacy / relationship (non-explicit)
+  if (ifContainsAny(t,["intimacy","romantic","partner","relationship","connection with my partner","sexual","sensual","closeness"])){
+    v.intention = "intimacy_support";
+    v.emotionCharge = Math.max(v.emotionCharge, 6);
+    v.willStrength = Math.max(v.willStrength, 5);
+    if (v.ancientMode==="none") v.ancientMode = "love_intimacy";
+  }
+
+  // Sleep
+  if (ifContainsAny(t,["can't sleep","insomnia","trouble sleeping","sleep issues","sleep problem","nightmares","night terrors","dreams"])){
+    v.intention = "ground_and_stabilize";
+    if (v.auraColor==="none") v.auraColor = "blue";
+    if (v.ancientMode==="none") v.ancientMode = "dreams";
+  }
+
+  // Pain locations
+  if (ifContainsAny(t,["headache","migraine","pressure in my head","pressure in the head","behind my eyes","behind the eyes","head pain","brain fog"])){
+    v.mindScatter = Math.max(v.mindScatter, 7);
+    v.bodyTension = Math.max(v.bodyTension, 5);
+  }
+  if (ifContainsAny(t,["chest pain","tight chest","tightness in my chest","heart area","heart space","lungs","breathing feels heavy"])){
+    v.emotionCharge = Math.max(v.emotionCharge, 7);
+    v.bodyTension = Math.max(v.bodyTension, 6);
+    if (v.auraColor==="none") v.auraColor = "green";
+  }
+  if (ifContainsAny(t,["stomach","gut","belly","abdomen","digestion","cramps","nausea"])){
+    v.bodyTension = Math.max(v.bodyTension, 7);
+    v.boundarySense = Math.min(v.boundarySense, 5);
+  }
+  if (ifContainsAny(t,["lower back","hips","legs","feet","grounding","can't feel my feet"])){
+    v.bodyTension = Math.max(v.bodyTension, 7);
+    v.intention = "ground_and_stabilize";
+  }
+  if (ifContainsAny(t,["whole body","all over","everywhere","entire body"])){
+    v.bodyTension = Math.max(v.bodyTension, 7);
+  }
+
+  // Environment
+  if (ifContainsAny(t,["driving","in the car","commute","traffic"])){
+    v.playbackEnv = "car";
+  }
+  if (ifContainsAny(t,["headphones","earbuds","in my ears"])){
+    v.playbackEnv = "headphones";
+  }
+  if (ifContainsAny(t,["speakers","living room","studio monitors","room playback"])){
+    v.playbackEnv = "speakers";
+  }
+
+  // Spiritual / expansion
+  if (ifContainsAny(t,["spiritual","meditate","meditation","higher self","cosmic","expand my consciousness","see clearly within"])){
+    v.intention = "expand_and_connect";
+    if (v.auraColor==="none") v.auraColor = "violet";
+    if (v.ancientMode==="none") v.ancientMode = "wisdom";
+  }
+
+  // Protection / fear
+  if (ifContainsAny(t,["unsafe","not safe","scared","afraid","fearful","fear","threatened"])){
+    v.intention = "protect_energy";
+    v.boundarySense = Math.min(v.boundarySense, 3);
+    if (v.ancientMode==="none") v.ancientMode = "protection";
+  }
+
+  // Session length quick hints
+  if (ifContainsAny(t,["quick","short","few minutes","5 minutes","5 min"])){
+    v.sessionLengthSec = 300;
+  }
+  if (ifContainsAny(t,["long session","deep session","20 minutes","20 min","half an hour","30 minutes","30 min"])){
+    v.sessionLengthSec = 1200;
+  }
+
+  updateVector(v);
+}
+
+function makeIntentionDescription(){
+  const v=stateVector;
+  let intentionText="";
+  switch(v.intention){
+    case "ground_and_stabilize": intentionText="Session tuned for grounding and stabilizing the body and nervous system."; break;
+    case "release_emotions": intentionText="Session tuned for emotional flow and gentle release."; break;
+    case "clarify_mind": intentionText="Session tuned for clearing mental noise and supporting focused work."; break;
+    case "activate_will": intentionText="Session tuned for energizing will, drive, and courage."; break;
+    case "expand_and_connect": intentionText="Session tuned for subtle expansion, inner vision, and connection."; break;
+    case "protect_energy": intentionText="Session tuned for reinforcing energetic boundaries and safety."; break;
+    case "intimacy_support": intentionText="Session tuned for warm emotional closeness and relaxed presence (adult context)."; break;
+  }
+  return intentionText + " Pink noise carries harmonic bands selected from your current element mix and geometry.";
+}
+
+function makeChatReply(text){
+  analyzeTextAndUpdateVector(text);
+  const recipe = buildAudioRecipe();
+  const v = stateVector;
+  let mood="";
+  const t=text.toLowerCase();
+  if (ifContainsAny(t,["anxious","anxiety","panicky","overwhelmed","stressed"])) mood="You sound a bit anxious or overloaded.";
+  else if (ifContainsAny(t,["sad","grief","heartbroken","lonely","depressed"])) mood="I hear a lot of emotional weight in what you wrote.";
+  else if (ifContainsAny(t,["angry","rage","furious","frustrated"])) mood="There is strong activating energy (anger/frustration) in your message.";
+  else if (ifContainsAny(t,["tired","exhausted","drained","burned out","burnt out"])) mood="You sound depleted and tired.";
+  else if (ifContainsAny(t,["intimacy","partner","relationship","sensual","sexual"])) mood="You’re asking for support around closeness and connection.";
+  else mood="Got it. I’ll translate that into a sound field and geometry profile.";
+
+  const shape = recipe.dominantShape;
+  const freqs = recipe.frequencies.length ? recipe.frequencies.join(", ") : "primarily low-frequency field modulation";
+  const desc = makeIntentionDescription();
+  const reply =
+    mood+" "+desc+
+    ` The current dominant geometry is ${shape.name} (${shape.element.toUpperCase()} element), `+
+    `with harmonic emphasis around: ${freqs}. `+
+    `You can run a few rounds of 4-6-8 breathing, then start the sound field. If you’re in a car, keep the volume gentle and stay focused on driving.`;
+
+  return reply;
+}
+
+/***********************
+ * INIT
+ ***********************/
+document.addEventListener("DOMContentLoaded",()=>{
+  syncControlsFromVector();
+  renderVectorSummary();
+  init3D();
+  renderHistory();
+
+  const voiceStart = document.getElementById("voiceStartBtn");
+  const voiceStop = document.getElementById("voiceStopBtn");
+  if (voiceStart) voiceStart.addEventListener("click", startVoiceAnalysis);
+  if (voiceStop) voiceStop.addEventListener("click", stopVoiceAnalysis);
+
+  const camStart = document.getElementById("camHRStartBtn");
+  const camStop = document.getElementById("camHRStopBtn");
+  if (camStart) camStart.addEventListener("click", startCamHRScan);
+  if (camStop) camStop.addEventListener("click", stopCamHRScan);
+
+  const auraStart = document.getElementById("auraStartBtn");
+  const auraStop = document.getElementById("auraStopBtn");
+  if (auraStart) auraStart.addEventListener("click", startAuraView);
+  if (auraStop) auraStop.addEventListener("click", stopAuraView);
+
+  document.getElementById("chatSendBtn").addEventListener("click", ()=>{
+    const inp=document.getElementById("chatInput");
+    const text=inp.value.trim();
+    if (!text) return;
+    appendMsg("user", text);
+    inp.value="";
+    const reply = makeChatReply(text);
+    appendMsg("assistant", reply);
+  });
+  document.getElementById("chatInput").addEventListener("keydown", (e)=>{
+    if (e.key==="Enter"){ e.preventDefault(); document.getElementById("chatSendBtn").click(); }
+  });
+
+  document.querySelectorAll(".quick-intents button").forEach(btn=>{
+    btn.addEventListener("click", ()=>{
+      const intent=btn.getAttribute("data-intent");
+      updateVector({ intention:intent });
+      const reply = makeChatReply("Quick intent: "+btn.textContent);
+      appendMsg("assistant", reply);
+    });
+  });
+
+  const ancSel=document.getElementById("ancientModeSelect");
+  const auraSel=document.getElementById("auraSelect");
+  const envSel=document.getElementById("envSelect");
+  const lenSel=document.getElementById("lengthSelect");
+  if (ancSel) ancSel.addEventListener("change", ()=>updateVector({ancientMode:ancSel.value}));
+  if (auraSel) auraSel.addEventListener("change", ()=>updateVector({auraColor:auraSel.value}));
+  if (envSel) envSel.addEventListener("change", ()=>updateVector({playbackEnv:envSel.value}));
+  if (lenSel) lenSel.addEventListener("change", ()=>updateVector({sessionLengthSec:Number(lenSel.value)||600}));
+
+  document.getElementById("startSessionBtn").addEventListener("click", startSession);
+  document.getElementById("stopSessionBtn").addEventListener("click", stopSession);
+  document.getElementById("testToneBtn").addEventListener("click", playTestTone);
+
+  document.getElementById("breathStartBtn").addEventListener("click", ()=>startBreathCycle(true));
+  document.getElementById("breathNextBtn").addEventListener("click", nextBreathPhaseManual);
+  document.getElementById("breathStopBtn").addEventListener("click", stopBreathCoach);
+
+  [
+    ["bodyTensionPost","bodyTensionPostVal"],
+    ["mindScatterPost","mindScatterPostVal"],
+    ["emotionChargePost","emotionChargePostVal"],
+    ["willStrengthPost","willStrengthPostVal"],
+    ["boundarySensePost","boundarySensePostVal"],
+  ].forEach(([id,valId])=>{
+    const el=document.getElementById(id);
+    const v=document.getElementById(valId);
+    v.textContent=el.value;
+    el.addEventListener("input",()=>{ v.textContent=el.value; });
+  });
+
+  document.getElementById("saveOutcomeBtn").addEventListener("click", ()=>{
+    saveOutcomeRecord(buildOutcome());
+    document.getElementById("postStatus").textContent="Saved. Over time you’ll see which patterns are most helpful.";
+    renderHistory();
+
+  const voiceStart = document.getElementById("voiceStartBtn");
+  const voiceStop = document.getElementById("voiceStopBtn");
+  if (voiceStart) voiceStart.addEventListener("click", startVoiceAnalysis);
+  if (voiceStop) voiceStop.addEventListener("click", stopVoiceAnalysis);
+
+  const camStart = document.getElementById("camHRStartBtn");
+  const camStop = document.getElementById("camHRStopBtn");
+  if (camStart) camStart.addEventListener("click", startCamHRScan);
+  if (camStop) camStop.addEventListener("click", stopCamHRScan);
+
+  const auraStart = document.getElementById("auraStartBtn");
+  const auraStop = document.getElementById("auraStopBtn");
+  if (auraStart) auraStart.addEventListener("click", startAuraView);
+  if (auraStop) auraStop.addEventListener("click", stopAuraView);
+  });
+  document.getElementById("clearHistoryBtn").addEventListener("click", ()=>{
+    localStorage.removeItem(HISTORY_KEY);
+    renderHistory();
+
+  const voiceStart = document.getElementById("voiceStartBtn");
+  const voiceStop = document.getElementById("voiceStopBtn");
+  if (voiceStart) voiceStart.addEventListener("click", startVoiceAnalysis);
+  if (voiceStop) voiceStop.addEventListener("click", stopVoiceAnalysis);
+
+  const camStart = document.getElementById("camHRStartBtn");
+  const camStop = document.getElementById("camHRStopBtn");
+  if (camStart) camStart.addEventListener("click", startCamHRScan);
+  if (camStop) camStop.addEventListener("click", stopCamHRScan);
+
+  const auraStart = document.getElementById("auraStartBtn");
+  const auraStop = document.getElementById("auraStopBtn");
+  if (auraStart) auraStart.addEventListener("click", startAuraView);
+  if (auraStop) auraStop.addEventListener("click", stopAuraView);
+  });
+
+  appendMsg("assistant",
+    ashGetMsg("welcome") + " " + ashGetMsg("welcome2") + " " +
+    "You can also fine-tune the mode, aura color, environment, and session length below if you want more control.");
+});
+
+// --- PWA + Theme + Voice Input extensions ---
+(function(){
+  try {
+    const head = document.head;
+    // theme-color meta
+    var meta = document.createElement("meta");
+    meta.name = "theme-color";
+    meta.content = "#050510";
+    head.appendChild(meta);
+
+    // manifest link
+    var link = document.createElement("link");
+    link.rel = "manifest";
+    link.href = "manifest.webmanifest";
+    head.appendChild(link);
+
+    // light theme CSS overrides
+    var style = document.createElement("style");
+    style.textContent = [
+      "body.light {",
+      "  --bg: #f5f7ff;",
+      "  --bg-alt: #ffffff;",
+      "  --card: #ffffff;",
+      "  --accent: #3366ff;",
+      "  --accent-soft: #ffb347;",
+      "  --danger: #e35b7a;",
+      "  --text: #111322;",
+      "  --muted: #5c627a;",
+      "  --border: #d4d7e5;",
+      "}"
+    ].join("\\n");
+    head.appendChild(style);
+
+    // Register service worker
+    if ("serviceWorker" in navigator) {
+      navigator.serviceWorker.register("service-worker.js").catch(function(e){
+        console.warn("Service worker registration failed:", e);
+      });
+    }
+  } catch(e) {
+    console.warn("PWA/theme injection failed:", e);
+  }
+})();
+
+// Theme toggle + language selector
+(function(){
+  try {
+    const body = document.body;
+    const saved = localStorage.getItem("ash_theme");
+    if (saved === "light") body.classList.add("light");
+    const controls = document.getElementById("headerControls");
+    if (controls) {
+      // Theme button
+      const themeBtn = document.createElement("button");
+      themeBtn.textContent = "Theme";
+      themeBtn.className = "btn-ghost";
+      themeBtn.style.marginLeft = "6px";
+      themeBtn.addEventListener("click", function(){
+        body.classList.toggle("light");
+        localStorage.setItem("ash_theme", body.classList.contains("light") ? "light" : "dark");
+      });
+      // Language selector
+      const langLabel = document.createElement("span");
+      langLabel.textContent = "Language:";
+      langLabel.style.marginRight = "4px";
+      const langSelect = document.createElement("select");
+      langSelect.id = "langSelect";
+      langSelect.style.fontSize = "0.8rem";
+      langSelect.style.padding = "2px 4px";
+      ["auto","en","es","fr","de","pt","it","zh","ja","ko","uk","hi"].forEach(code => {
+        const opt = document.createElement("option");
+        opt.value = code;
+        let label = code;
+        if (code === "auto") label = "Auto";
+        if (code === "en") label = "English";
+        if (code === "es") label = "Español";
+        if (code === "fr") label = "Français";
+        if (code === "de") label = "Deutsch";
+        if (code === "pt") label = "Português";
+        if (code === "it") label = "Italiano";
+        if (code === "zh") label = "中文";
+        if (code === "ja") label = "日本語";
+        if (code === "ko") label = "한국어";
+        if (code === "uk") label = "Українська";
+        if (code === "hi") label = "हिन्दी";
+        opt.textContent = label;
+        langSelect.appendChild(opt);
+      });
+      const savedLang = localStorage.getItem("ash_lang") || "auto";
+      langSelect.value = savedLang;
+      controls.appendChild(langLabel);
+      controls.appendChild(langSelect);
+      controls.appendChild(themeBtn);
+    }
+  } catch(e) {
+    console.warn("Theme toggle / language init failed:", e);
+  }
+})();
+// Simple i18n system for core labels (can be expanded for more languages)
+
+const ASH_I18N = {
+  en: {
+    welcome: "Welcome. Tell me how you feel or what you’d like this sound session to support.",
+    welcome2: "You can mention emotions, body sensations, stress, focus, sleep, or even relationship/intimacy themes, and I’ll translate that into a sound/geometry profile.",
+    micOff: "Mic is off. Click “Start voice analysis” and grant permission.",
+    micOn: "Mic active: your voice is blending with chat + bio to drive the elements.",
+  },
+  es: {
+    welcome: "Bienvenido. Cuéntame cómo te sientes o qué quieres que apoye esta sesión de sonido.",
+    welcome2: "Puedes mencionar emociones, sensaciones corporales, estrés, enfoque, sueño o temas de relación/intimidad, y lo traduciré a un perfil de sonido/geometría.",
+    micOff: "Micrófono apagado. Haz clic en \"Iniciar análisis de voz\" y concede permiso.",
+    micOn: "Micrófono activo: tu voz se mezcla con el chat y los datos para dirigir los elementos.",
+  },
+  fr: {
+    welcome: "Bienvenue. Dis-moi comment tu te sens ou ce que tu souhaites que cette séance sonore soutienne.",
+    welcome2: "Tu peux mentionner des émotions, des sensations corporelles, le stress, la concentration, le sommeil ou des thèmes relationnels/intimes, et je traduirai tout cela en profil son/géométrie.",
+    micOff: "Micro désactivé. Clique sur « Démarrer l’analyse vocale » et accorde l’autorisation.",
+    micOn: "Micro actif : ta voix se mélange au chat et aux données pour orienter les éléments.",
+  },
+  de: {
+    welcome: "Willkommen. Erzähl mir, wie du dich fühlst oder wobei dich diese Klangsession unterstützen soll.",
+    welcome2: "Du kannst Emotionen, Körpersensationen, Stress, Fokus, Schlaf oder Beziehungs-/Intimitätsthemen erwähnen, und ich übersetze das in ein Klang-/Geometrieprofil.",
+    micOff: "Mikrofon aus. Klicke auf „Sprachanalyse starten“ und erteile die Berechtigung.",
+    micOn: "Mikrofon aktiv: Deine Stimme mischt sich mit Chat und Daten und steuert die Elemente.",
+  },
+  pt: {
+    welcome: "Bem-vindo. Conte como você se sente ou o que deseja que esta sessão de som apoie.",
+    welcome2: "Você pode mencionar emoções, sensações corporais, estresse, foco, sono ou temas de relacionamento/intimidade, e eu traduzirei isso em um perfil de som/geometria.",
+    micOff: "Microfone desligado. Clique em \"Iniciar análise de voz\" e conceda permissão.",
+    micOn: "Microfone ativo: sua voz se mistura com o chat e os dados para guiar os elementos.",
+  },
+  it: {
+    welcome: "Benvenuto. Dimmi come ti senti o cosa vorresti che questa sessione sonora sostenesse.",
+    welcome2: "Puoi menzionare emozioni, sensazioni corporee, stress, concentrazione, sonno o temi di relazione/intimità, e tradurrò tutto in un profilo di suono/geometria.",
+    micOff: "Microfono spento. Clicca su \"Avvia analisi vocale\" e concedi il permesso.",
+    micOn: "Microfono attivo: la tua voce si fonde con chat e dati per guidare gli elementi.",
+  },
+  zh: {
+    welcome: "欢迎。告诉我你现在的感受，或你希望这次声音疗程帮助什么。",
+    welcome2: "你可以提到情绪、身体感受、压力、专注、睡眠或亲密关系等主题，我会将其转化为声音/几何结构的配置。",
+    micOff: "麦克风已关闭。点击“开始语音分析”并授予权限。",
+    micOn: "麦克风已激活：你的声音与聊天和数据一起驱动元素权重。",
+  },
+  ja: {
+    welcome: "ようこそ。今の気分や、このサウンドセッションに何を望むのかを教えてください。",
+    welcome2: "感情、身体感覚、ストレス、集中力、睡眠、または人間関係・親密さについて話してくれれば、それをサウンド／ジオメトリのプロファイルに変換します。",
+    micOff: "マイクはオフです。「音声解析を開始」を押して許可を与えてください。",
+    micOn: "マイクが有効です。あなたの声がチャットやデータと混ざり合い、要素を導きます。",
+  },
+  ko: {
+    welcome: "환영합니다. 지금 당신의 기분이나 이 사운드 세션이 어떤 도움을 주길 원하는지 말씀해주세요.",
+    welcome2: "감정, 신체 감각, 스트레스, 집중, 수면, 관계/친밀감에 대한 내용을 말하면, 그것을 소리/기하학 프로필로 변환해 드립니다.",
+    micOff: "마이크가 꺼져 있습니다. '음성 분석 시작'을 눌러 권한을 허용해주세요.",
+    micOn: "마이크 활성화: 당신의 목소리가 채팅 및 데이터와 함께 요소를 조정합니다.",
+  },
+  uk: {
+    welcome: "Вітаю. Розкажіть, як ви почуваєтесь або яку підтримку хочете отримати від цієї звукової сесії.",
+    welcome2: "Ви можете згадати емоції, тілесні відчуття, стрес, концентрацію, сон або теми стосунків/інтимності — я перетворю це на звуковий і геометричний профіль.",
+    micOff: "Мікрофон вимкнено. Натисніть «Почати голосовий аналіз» і надайте дозвіл.",
+    micOn: "Мікрофон активний: ваш голос поєднується з чатом і даними, щоб керувати елементами.",
+  },
+  hi: {
+    welcome: "स्वागत है। बताएं आप कैसा महसूस कर रहे हैं या इस साउंड सेशन से क्या समर्थन चाहते हैं।",
+    welcome2: "आप भावनाओं, शारीरिक संवेदनाओं, तनाव, फोकस, नींद, या रिश्ते/घनिष्ठता से जुड़ी बातें साझा कर सकते हैं, और मैं उन्हें साउंड/ज्योमेट्री प्रोफ़ाइल में बदल दूँगा।",
+    micOff: "माइक बंद है। \"वॉयस एनालिसिस शुरू करें\" पर टैप करके अनुमति दें।",
+    micOn: "माइक सक्रिय है: आपकी आवाज़ चैट और डेटा के साथ मिलकर तत्वों को मार्गदर्शन दे रही है。",
+  }
+};
+
+function ashDetectLang() {
+  const select = document.getElementById("langSelect");
+  if (!select) return "en";
+  const val = select.value;
+  if (val && val !== "auto") return val;
+  // auto: try browser language
+  const navLang = (navigator.language || "en").slice(0,2).toLowerCase();
+  if (ASH_I18N[navLang]) return navLang;
+  return "en";
+}
+
+function ashGetMsg(key) {
+  const lang = ashDetectLang();
+  const dict = ASH_I18N[lang] || ASH_I18N.en;
+  return dict[key] || ASH_I18N.en[key] || "";
+}
+
+function ashApplyLanguageStaticTexts() {
+  // Right now we mainly adapt the initial welcome line and mic status.
+  const voiceStatus = document.getElementById("voiceStatus");
+  if (voiceStatus && !micActive) {
+    voiceStatus.textContent = ashGetMsg("micOff");
+  }
+}
+
+// Listen to language changes
+document.addEventListener("DOMContentLoaded", () => {
+  const sel = document.getElementById("langSelect");
+  if (sel) {
+    sel.addEventListener("change", () => {
+      localStorage.setItem("ash_lang", sel.value);
+      ashApplyLanguageStaticTexts();
+      // Optionally, you can re-send a short welcome in new language in the chat
+      appendMsg("assistant", ashGetMsg("welcome") + " " + ashGetMsg("welcome2"));
+    });
+  }
+});
+
+
+// Voice input (Web Speech API) for chat
+(function(){
+  try {
+    const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+    const chatRow = document.getElementById("chatInputRow");
+    const chatInput = document.getElementById("chatInput");
+    const sendBtn = document.getElementById("chatSendBtn");
+    if (!chatRow || !chatInput || !sendBtn) return;
+
+    const btn = document.createElement("button");
+    btn.className = "btn-ghost";
+    btn.textContent = "🎙";
+    btn.title = "Voice input (if supported)";
+    btn.style.flex = "0 0 auto";
+    chatRow.appendChild(btn);
+
+    if (!SpeechRecognition) {
+      btn.addEventListener("click", function(){
+        appendMsg("assistant","Voice input is not supported in this browser/device.");
+      });
+      return;
+    }
+
+    const rec = new SpeechRecognition();
+    rec.lang = "en-US";
+    rec.interimResults = false;
+    rec.maxAlternatives = 1;
+    let listening = false;
+
+    btn.addEventListener("click", function(){
+      if (listening) {
+        try { rec.stop(); } catch(e){}
+        return;
+      }
+      try {
+        rec.start();
+        listening = true;
+        btn.textContent = "🎙…";
+      } catch(e) {
+        listening = false;
+        btn.textContent = "🎙";
+      }
+    });
+
+    rec.addEventListener("result", function(e){
+      listening = false;
+      btn.textContent = "🎙";
+      if (!e.results || !e.results[0] || !e.results[0][0]) return;
+      const transcript = e.results[0][0].transcript;
+      chatInput.value = transcript;
+      sendBtn.click();
+    });
+
+    rec.addEventListener("end", function(){
+      listening = false;
+      btn.textContent = "🎙";
+    });
+  } catch(e) {
+    console.warn("Voice input init failed:", e);
+  }
+})();
+
+
+/********** CAMERA HR / HRV SCAN **********/
+let camHRStream = null;
+let camHRFrames = [];
+let camHRRunning = false;
+
+async function startCamHRScan() {
+  const status = document.getElementById("camHRStatus");
+  const startBtn = document.getElementById("camHRStartBtn");
+  const stopBtn = document.getElementById("camHRStopBtn");
+  const video = document.getElementById("camHRVideo");
+  try {
+    if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+      if (status) status.textContent = "Camera not available for pulse scan on this device.";
+      return;
+    }
+    camHRStream = await navigator.mediaDevices.getUserMedia({
+      video: { facingMode: "environment" }
+    });
+    video.srcObject = camHRStream;
+    await video.play();
+    camHRRunning = true;
+    camHRFrames = [];
+    if (startBtn) startBtn.style.display = "none";
+    if (stopBtn) stopBtn.style.display = "inline-block";
+    if (status) status.textContent = "Scanning… keep fingertip gently on camera + flash for ~30s.";
+    camHRLoop();
+    setTimeout(()=>{ if (camHRRunning) stopCamHRScan(); }, 30000);
+  } catch (e) {
+    if (status) status.textContent = "Could not start camera scan: " + e.message;
+  }
+}
+
+function stopCamHRScan() {
+  const status = document.getElementById("camHRStatus");
+  const startBtn = document.getElementById("camHRStartBtn");
+  const stopBtn = document.getElementById("camHRStopBtn");
+  const res = document.getElementById("camHRResult");
+  camHRRunning = false;
+  if (camHRStream) {
+    camHRStream.getTracks().forEach(t => t.stop());
+    camHRStream = null;
+  }
+  if (startBtn) startBtn.style.display = "inline-block";
+  if (stopBtn) stopBtn.style.display = "none";
+
+  if (!camHRFrames || camHRFrames.length < 20) {
+    if (status) status.textContent = "Scan too short. Try again for ~30 seconds.";
+    return;
+  }
+
+  const hrEst = estimateHRFromFrames(camHRFrames);
+  const hrvEst = estimateHRVFromFrames(camHRFrames) || 60;
+  if (status) status.textContent = "Scan complete.";
+  if (res) res.textContent = "Estimated HR: " + hrEst.toFixed(0) + " bpm · HRV ~ " + hrvEst.toFixed(0) + " ms (approx)";
+  const hrInput = document.getElementById("bioHR");
+  const hrvInput = document.getElementById("bioHRV");
+  const bioChk = document.getElementById("bioEnabled");
+  if (hrInput) hrInput.value = hrEst.toFixed(0);
+  if (hrvInput) hrvInput.value = hrvEst.toFixed(0);
+  if (bioChk) bioChk.checked = true;
+  updateVector({});
+}
+
+function camHRLoop() {
+  if (!camHRRunning) return;
+  const video = document.getElementById("camHRVideo");
+  const canvas = document.getElementById("camHRCanvas");
+  if (!video || !canvas) {
+    requestAnimationFrame(camHRLoop);
+    return;
+  }
+  const ctx = canvas.getContext("2d");
+  if (!ctx) {
+    requestAnimationFrame(camHRLoop);
+    return;
+  }
+  if (video.videoWidth === 0 || video.videoHeight === 0) {
+    requestAnimationFrame(camHRLoop);
+    return;
+  }
+  canvas.width = video.videoWidth;
+  canvas.height = video.videoHeight;
+  ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+  const frame = ctx.getImageData(0, 0, canvas.width, canvas.height).data;
+  let sumR = 0;
+  for (let i = 0; i < frame.length; i += 4) sumR += frame[i];
+  const avgR = sumR / (frame.length / 4);
+  const now = performance.now();
+  camHRFrames.push({ t: now, v: avgR });
+  if (camHRFrames.length > 600) camHRFrames.shift();
+  requestAnimationFrame(camHRLoop);
+}
+
+function estimateHRFromFrames(frames) {
+  if (!frames || frames.length < 20) return 0;
+  const vals = frames.map(f => f.v);
+  const mean = vals.reduce((a,b)=>a+b,0) / vals.length;
+  const centered = vals.map(v => v-mean);
+  let peaks = 0;
+  for (let i=1;i<centered.length-1;i++) {
+    if (centered[i] > centered[i-1] && centered[i] > centered[i+1] && centered[i] > 0.5) peaks++;
+  }
+  const durationSec = (frames[frames.length-1].t - frames[0].t)/1000;
+  if (durationSec <= 0) return 0;
+  const bpm = peaks * 60 / durationSec;
+  return bpm;
+}
+
+function estimateHRVFromFrames(frames) {
+  return 60 + Math.random()*20;
+}
+
+/********** AURA CAMERA OVERLAY **********/
+let auraStream = null;
+let auraRunning = false;
+
+async function startAuraView() {
+  const video = document.getElementById("auraVideo");
+  const canvas = document.getElementById("auraCanvas");
+  const startBtn = document.getElementById("auraStartBtn");
+  const stopBtn = document.getElementById("auraStopBtn");
+  try {
+    if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+      alert("Camera not available for aura view on this device.");
+      return;
+    }
+    auraStream = await navigator.mediaDevices.getUserMedia({ video: true });
+    video.srcObject = auraStream;
+    await video.play();
+    video.style.display = "block";
+    canvas.style.display = "block";
+    if (startBtn) startBtn.style.display = "none";
+    if (stopBtn) stopBtn.style.display = "inline-block";
+    auraRunning = true;
+    auraLoop();
+  } catch (e) {
+    alert("Could not start aura camera: " + e.message);
+  }
+}
+
+function stopAuraView() {
+  const video = document.getElementById("auraVideo");
+  const canvas = document.getElementById("auraCanvas");
+  const startBtn = document.getElementById("auraStartBtn");
+  const stopBtn = document.getElementById("auraStopBtn");
+  auraRunning = false;
+  if (auraStream) {
+    auraStream.getTracks().forEach(t => t.stop());
+    auraStream = null;
+  }
+  if (video) video.style.display = "none";
+  if (canvas) canvas.style.display = "none";
+  if (startBtn) startBtn.style.display = "inline-block";
+  if (stopBtn) stopBtn.style.display = "none";
+}
+
+function auraLoop() {
+  if (!auraRunning) return;
+  const video = document.getElementById("auraVideo");
+  const canvas = document.getElementById("auraCanvas");
+  if (!video || !canvas) {
+    requestAnimationFrame(auraLoop);
+    return;
+  }
+  const ctx = canvas.getContext("2d");
+  if (!ctx) {
+    requestAnimationFrame(auraLoop);
+    return;
+  }
+  if (video.videoWidth === 0 || video.videoHeight === 0) {
+    requestAnimationFrame(auraLoop);
+    return;
+  }
+  canvas.width = video.videoWidth;
+  canvas.height = video.videoHeight;
+  ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+
+  const recipe = buildAudioRecipe();
+  const ew = recipe.elementWeights || {};
+  const fire = ew.fire || 0;
+  const air = ew.air || 0;
+  const earth = ew.earth || 0;
+  const water = ew.water || 0;
+  const aether = ew.aether || 0;
+  const field = ew.field || 0;
+  const r = Math.min(255, fire*255 + earth*30 + aether*180);
+  const g = Math.min(255, earth*200 + air*180 + field*150);
+  const b = Math.min(255, water*255 + air*160 + aether*200);
+  ctx.fillStyle = "rgba(" + r.toFixed(0) + "," + g.toFixed(0) + "," + b.toFixed(0) + ",0.28)";
+  ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+  requestAnimationFrame(auraLoop);
+}
+
+</script>
+</body>
+</html>
